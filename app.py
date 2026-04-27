@@ -1,47 +1,55 @@
 from blessed import Terminal
 import os
+import sys
 
 term = Terminal()
 y = 0
-baseDir = '/Users/Steven/Desktop'
+baseDir = '/home/saoii'
 dirTitle = "Base Search"
-infolder = False
 state = "main"
 currentDir = ""
+baseFileList = os.listdir(baseDir)
 
 with term.fullscreen(), term.cbreak(), term.hidden_cursor():
     while True:
         if state == "main":
-            print(term.clear)
-            infolder = False
-            print(term.bold(dirTitle))
-            baseFileList = os.listdir('/Users/Steven/Desktop')
-
-            for _, item in enumerate(baseFileList):
-                print(item)
-
-            print(term.move(term.height - 1, 0) + 'Press "q" or "h" to quit')
-            print(term.move(y + 1, 0) + term.reverse_underline(baseFileList[y]))
+            baseFileList = os.listdir(baseDir)
+            y = min(y, len(baseFileList) - 1)
+            out = term.home + term.clear
+            out += term.bold(dirTitle) + '\n'
+            for item in baseFileList:
+                out += item + '\n'
+            out += term.move(term.height - 1, 0) + 'Press "q" to quit'
+            out += term.move(y + 1, 0) + term.reverse_underline(baseFileList[y])
+            sys.stdout.write(out)
+            sys.stdout.flush()
 
         if state == "folderOpen":
-            print(term.clear)
-            infolder = True
-            print(term.bold(currentDir))
-
             if os.path.isdir(currentDir):
                 baseFileList = os.listdir(currentDir)
-                for _, item in enumerate(baseFileList):
-                    print(item)
-            else:
-                state = "openFile"
-            print(term.move(term.height - 2, 0) + 'Press "enter" or "l" to open folder or file(nvim)')
-            print(term.move(term.height - 1, 0) + 'Press "b" or "h" to go back')
-            print(term.move(y + 1, 0) + term.reverse_underline(baseFileList[y]))
+                y = min(y, len(baseFileList) - 1)
+                out = term.home + term.clear
+                out += term.bold(currentDir) + '\n'
+                for item in baseFileList:
+                    out += item + '\n'
+                out += term.move(term.height - 2, 0) + 'Press "enter" or "l" to open'
+                out += term.move(term.height - 1, 0) + 'Press "h" or "b" to go back'
+                out += term.move(y + 1, 0) + term.reverse_underline(baseFileList[y])
+                sys.stdout.write(out)
+                sys.stdout.flush()
 
         if state == "openFile":
-            print(term.clear)
-            os.system(f"nvim {os.path.join(baseDir,baseFileList[y])}")
-        key = term.inkey() 
+            directory = os.path.dirname(currentDir)
+            os.chdir(directory)
+            os.system(f"nvim '{currentDir}'")
+            currentDir = directory
+            sys.stdout.write(term.home + term.clear)
+            sys.stdout.flush()
+            print(term.hide_cursor)
+            state = "folderOpen"
+            continue
+
+        key = term.inkey()
         if key.lower() == "q":
             break
         elif key.name == "KEY_DOWN" or key.lower() == "j":
@@ -55,10 +63,8 @@ with term.fullscreen(), term.cbreak(), term.hidden_cursor():
                 y = 0
                 state = "folderOpen"
             else:
-                directory = os.path.dirname(selected)
-                os.chdir(directory)
-                os.system(f"nvim '{selected}'")
-                print(term.hide_cursor)
+                currentDir = selected
+                state = "openFile"
         elif key.lower() == "b" or key.lower() == "h":
             currentDir = os.path.dirname(currentDir)
             y = 0
@@ -66,8 +72,4 @@ with term.fullscreen(), term.cbreak(), term.hidden_cursor():
                 break
             if currentDir == baseDir or not currentDir.startswith(baseDir):
                 state = "main"
-
-
-
-
 

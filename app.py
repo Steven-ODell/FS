@@ -5,7 +5,7 @@ import sys
 term = Terminal()
 y = 0
 # PC DIR = '/home/saoii'
-# MAC DIR = 'Users/Steven/Desktop'
+# MAC DIR = '/Users/Steven/Desktop'
 baseDir = '/Users/Steven/Desktop'
 dirTitle = "Base Search"
 state = "main"

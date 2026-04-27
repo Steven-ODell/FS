@@ -6,11 +6,31 @@ term = Terminal()
 y = 0
 # PC DIR = '/home/saoii'
 # MAC DIR = '/Users/Steven/Desktop'
-baseDir = '/home/saoii'
+baseDir = '/Users/Steven/Desktop'
 dirTitle = "HOME"
 state = "main"
 currentDir = ""
 baseFileList = os.listdir(baseDir)
+
+def createDirectoryName():
+    print(term.move_y(10) + term.center("|---------------------------------------|"))
+    print(term.center(""))
+    print(term.center("|---------------------------------------|"))
+    name = ""
+    while True:
+        x = term.width // 2 - len(name) // 2
+        print(term.move_xy(x, 11) + " " * 20, end="", flush=True)
+        print(term.move_xy(x, 11) + name, end="", flush=True)
+        val = term.inkey()
+        if val.name == "KEY_ENTER":
+            break
+        elif val.name == "KEY_BACKSPACE":
+            name = name[:-1]
+            print(term.move_xy(term.width // 2 - 3, 11) + " " * 20, end="", flush=True)
+            print(term.move_xy(term.width // 2 - 3, 11) + name, end="", flush=True)
+        elif val.isprintable():
+            name += val
+    return name
 
 with term.fullscreen(), term.cbreak(), term.hidden_cursor():
     while True:
@@ -51,6 +71,18 @@ with term.fullscreen(), term.cbreak(), term.hidden_cursor():
             state = "folderOpen"
             continue
 
+        if state == "createFolder":
+            print(term.clear)
+            mkName = createDirectoryName()
+            newFolderPath = os.path.join(currentDir, mkName)
+            os.mkdir(newFolderPath)
+            sys.stdout.write(term.home + term.clear)
+            sys.stdout.flush()
+            state = "folderOpen"
+            continue
+        #if state == "deleteFolder":
+
+
         key = term.inkey()
         if key.lower() == "q":
             break
@@ -74,4 +106,6 @@ with term.fullscreen(), term.cbreak(), term.hidden_cursor():
                 break
             if currentDir == baseDir or not currentDir.startswith(baseDir):
                 state = "main"
+        elif key.lower() == "n":
+            state = "createFolder"
 
